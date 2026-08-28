@@ -1,0 +1,57 @@
+{
+  "name": "dsh-skills-mcp-group-manager",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness Skills & MCPs Group Manager: group skills, filter the model skill catalog, toggle MCP servers, left panel UI",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": { "default": "./lib/index.js" },
+    "./client": { "default": "./lib/client.js" },
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": ["lib", "scripts", "cordis.patch.yml", "README.md"],
+  "scripts": {
+    "postinstall": "node scripts/setup-links.mjs",
+    "postuninstall": "node scripts/cleanup.mjs"
+  },
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "skills",
+    "mcp",
+    "group-manager",
+    "skill-groups"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SeverusZh/dsh-skills-mcp-group-manager.git"
+  },
+  "homepage": "https://github.com/SeverusZh/dsh-skills-mcp-group-manager#readme",
+  "bugs": {
+    "url": "https://github.com/SeverusZh/dsh-skills-mcp-group-manager/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-layout"
+      ],
+      "platform": "web"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-mcp-client": "^0.1.0",
+    "@deepseek-ai/dsh-tools": "^0.1.0",
+    "react": "^18.2.0"
+  },
+  "peerDependenciesMeta": { "*": { "optional": true } }
+}
