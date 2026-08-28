@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "postuninstall": "node scripts/cleanup.mjs",
-    "test": "node --test tests/"
+    "test": "node --test"
   },
   "license": "MIT",
   "keywords": [
