@@ -5,14 +5,24 @@
   "type": "module",
   "main": "lib/index.js",
   "exports": {
-    ".": { "default": "./lib/index.js" },
-    "./client": { "default": "./lib/client.js" },
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
-  "files": ["lib", "scripts", "cordis.patch.yml", "README.md"],
+  "files": [
+    "lib",
+    "scripts",
+    "cordis.patch.yml",
+    "README.md"
+  ],
   "scripts": {
-    "postuninstall": "node scripts/cleanup.mjs"
+    "postuninstall": "node scripts/cleanup.mjs",
+    "test": "node --test tests/"
   },
   "license": "MIT",
   "keywords": [
@@ -36,7 +46,9 @@
     "node": ">=18"
   },
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "inject": [
         "@deepseek-ai/dsh-client-locale",
@@ -52,5 +64,9 @@
     "@deepseek-ai/dsh-tools": "^0.1.0",
     "react": "^18.2.0"
   },
-  "peerDependenciesMeta": { "*": { "optional": true } }
+  "peerDependenciesMeta": {
+    "*": {
+      "optional": true
+    }
+  }
 }
