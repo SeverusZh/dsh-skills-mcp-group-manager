@@ -1,6 +1,6 @@
 {
   "name": "dsh-skills-mcp-group-manager",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "DeepSeek Harness Skills & MCPs Group Manager: group skills, filter the model skill catalog, toggle MCP servers, left panel UI",
   "type": "module",
   "main": "lib/index.js",
