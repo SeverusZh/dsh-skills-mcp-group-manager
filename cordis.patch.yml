@@ -1,7 +1,7 @@
-# dsh-mcp-skill-manager bundle patch: mounts the manager into the host
+# dsh-skills-mcp-group-manager bundle patch: mounts the manager into the host
 # composition of a dsh profile. The plugin registers manager_* tools into the
 # shared tools registry, per-agent skill-catalog filtering, and MCP toggling.
 - insert:
     - id: mcp-skill-manager
-      name: 'dsh-mcp-skill-manager'
+      name: 'dsh-skills-mcp-group-manager'
       config: {}
