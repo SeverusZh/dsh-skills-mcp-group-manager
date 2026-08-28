@@ -1,28 +1,18 @@
 {
   "name": "dsh-skills-mcp-group-manager",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "DeepSeek Harness Skills & MCPs Group Manager: group skills, filter the model skill catalog, toggle MCP servers, left panel UI",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
-    ".": {
-      "default": "./lib/index.js"
-    },
-    "./client": {
-      "default": "./lib/client.js"
-    },
+    ".": { "default": "./lib/index.js" },
+    "./client": { "default": "./lib/client.js" },
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
-  "files": [
-    "lib",
-    "scripts",
-    "cordis.patch.yml",
-    "README.md"
-  ],
+  "files": ["lib", "scripts", "cordis.patch.yml", "README.md"],
   "scripts": {
-    "postuninstall": "node scripts/cleanup.mjs",
-    "test": "node --test"
+    "postuninstall": "node scripts/cleanup.mjs"
   },
   "license": "MIT",
   "keywords": [
@@ -46,9 +36,7 @@
     "node": ">=18"
   },
   "dsh": {
-    "bundle": {
-      "patch": "./cordis.patch.yml"
-    },
+    "bundle": { "patch": "./cordis.patch.yml" },
     "client": {
       "inject": [
         "@deepseek-ai/dsh-client-locale",
@@ -64,9 +52,5 @@
     "@deepseek-ai/dsh-tools": "^0.1.0",
     "react": "^18.2.0"
   },
-  "peerDependenciesMeta": {
-    "*": {
-      "optional": true
-    }
-  }
+  "peerDependenciesMeta": { "*": { "optional": true } }
 }
