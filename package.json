@@ -12,7 +12,8 @@
   },
   "files": ["lib", "scripts", "cordis.patch.yml", "README.md"],
   "scripts": {
-    "postuninstall": "node scripts/cleanup.mjs"
+    "postuninstall": "node scripts/cleanup.mjs",
+    "test": "node --test"
   },
   "license": "MIT",
   "keywords": [
