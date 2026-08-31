@@ -124,6 +124,52 @@ test('apply() tolerates live agents whose ctx resolves skills only via get()', (
   assert.ok(tools.length >= 12, 'tools still registered');
 });
 
+test('manager_skills_list merges agent-plane catalogs (user-dsh skills visible)', async () => {
+  // Regression: the host-plane `ctx.skills.list()` only sees the global layer
+  // (e.g. the aegis bundle provider). User/project skills live in the
+  // agent-plane filesystem provider, so the manager must read each live
+  // agent's view with its scope — otherwise ~/.dsh/skills skills never show
+  // up in the manager UI and cannot be added to groups.
+  const { ctx, tools } = fakeCtx();
+  const agentSkills = {
+    registerProvider() { return () => {}; },
+    async list({ scope, cwd }) {
+      assert.equal(scope, agent, 'list() must be called with the agent scope');
+      assert.equal(cwd, '/workspace/a', 'list() must be called with the agent cwd');
+      return [
+        { name: 'aegis-skill', description: 'bundled', invocation: { modelInvocable: true, userInvocable: true } },
+        { name: 'user-skill', description: 'user-dsh', invocation: { modelInvocable: true, userInvocable: true } },
+      ];
+    },
+  };
+  const agentCtx = {
+    get(key) { return key === 'skills' ? agentSkills : undefined; },
+  };
+  const agent = { id: 'agent-1', ctx: agentCtx, session: { header: { cwd: '/workspace/a' } } };
+  ctx.agents.list = () => [agent];
+  apply(ctx, {});
+  const tool = tools.find((entry) => entry.name === 'manager_skills_list');
+  assert.ok(tool, 'manager_skills_list registered');
+  const out = await tool.execute({});
+  assert.deepEqual(
+    out.skills.map((skill) => skill.name).sort(),
+    ['aegis-skill', 'user-skill'],
+    'agent-plane skills must be merged into the manager catalog',
+  );
+  assert.equal(out.skills[0].name, 'aegis-skill', 'output sorted by name');
+});
+
+test('manager_skills_list falls back to the host view when no agent resolves skills', async () => {
+  const { ctx, tools } = fakeCtx();
+  ctx.skills.list = async () => [
+    { name: 'host-skill', description: 'global', invocation: { modelInvocable: true, userInvocable: true } },
+  ];
+  apply(ctx, {});
+  const tool = tools.find((entry) => entry.name === 'manager_skills_list');
+  const out = await tool.execute({});
+  assert.deepEqual(out.skills.map((skill) => skill.name), ['host-skill']);
+});
+
 test('cleanup effect disposes every tool registration (no tool leaks on unload)', () => {
   const { ctx, tools, toolDisposers, effects } = fakeCtx();
   apply(ctx, {});
