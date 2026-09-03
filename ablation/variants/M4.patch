@@ -1,0 +1,393 @@
+diff --git a/lib/index.js b/lib/index.js
+index c204eff..d861efc 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -543,379 +543,6 @@ export function apply(ctx, config = {}) {
+     },
+   };
+ 
+-  // ── 6) manager_* tools (shared registry) ────────────────────────────────
+-  // The host half must stay free of external package imports so that
+-  // `dsh plugin add` alone works (Node resolves the plugin's imports from
+-  // the linked source directory, which has no node_modules). The compact
+-  // parameter/value specs below are converted to raw JSON schema locally.
+-  /** Convert the compact parameter spec to a raw JSON-schema object root. */
+-  function parameterSchema(spec) {
+-    const properties = {};
+-    const required = [];
+-    for (const [name, field] of Object.entries(spec ?? {})) {
+-      const { required: isRequired, ...rest } = field;
+-      properties[name] = rest;
+-      if (isRequired) required.push(name);
+-    }
+-    return {
+-      type: 'object',
+-      additionalProperties: false,
+-      properties,
+-      ...(required.length > 0 ? { required } : {}),
+-    };
+-  }
+-
+-  /** Convert a compact value spec (required flags inside properties) to raw JSON schema. */
+-  function valueSchema(spec) {
+-    if (spec === undefined) return undefined;
+-    const convert = (node) => {
+-      if (node === null || typeof node !== 'object' || Array.isArray(node)) return node;
+-      const out = {};
+-      const required = [];
+-      for (const [key, value] of Object.entries(node)) {
+-        if (key === 'required' && value === true) continue; // hoisted to this level
+-        if (key === 'properties' && typeof value === 'object') {
+-          out.properties = {};
+-          for (const [pname, pnode] of Object.entries(value)) {
+-            if (pnode !== null && typeof pnode === 'object' && pnode.required === true) {
+-              required.push(pname);
+-              const { required: _drop, ...rest } = pnode;
+-              out.properties[pname] = convert(rest);
+-            } else {
+-              out.properties[pname] = convert(pnode);
+-            }
+-          }
+-        } else if (key === 'items' && typeof value === 'object') {
+-          out.items = convert(value);
+-        } else {
+-          out[key] = value;
+-        }
+-      }
+-      if (required.length > 0) out.required = required;
+-      return out;
+-    };
+-    return convert(spec);
+-  }
+-
+-  const toolDisposers = [];
+-  const tool = (definition) => {
+-    toolDisposers.push(ctx.tools.register({
+-      ...definition,
+-      parameters: parameterSchema(definition.parameters),
+-      ...(definition.output !== undefined
+-        ? { output: { ...definition.output, schema: valueSchema(definition.output.schema) } }
+-        : {}),
+-    }));
+-  };
+-
+-  tool({
+-    name: 'manager_groups_list',
+-    description: 'List every skill group with its enabled flag and member skill names.',
+-    parameters: {},
+-    output: {
+-      schema: {
+-        type: 'object',
+-        additionalProperties: false,
+-        properties: {
+-          groups: {
+-            type: 'array',
+-            required: true,
+-            items: {
+-              type: 'object',
+-              additionalProperties: false,
+-              properties: {
+-                id: { type: 'string', required: true },
+-                name: { type: 'string', required: true },
+-                enabled: { type: 'boolean', required: true },
+-                skills: { type: 'array', required: true, items: { type: 'string' } },
+-              },
+-            },
+-          },
+-        },
+-      },
+-      render: (args, value) => [{ type: 'text', text: JSON.stringify(value) }],
+-    },
+-    async execute() {
+-      // Return only the groups half: the output schema declares just
+-      // `groups`, and MCP server data is exposed via manager_mcp_list.
+-      const state = await api.stateGet();
+-      return { groups: state.groups };
+-    },
+-  });
+-
+-  tool({
+-    name: 'manager_groups_create',
+-    description: 'Create a new skill group (enabled by default, empty member list). Returns the stable group id.',
+-    parameters: {
+-      name: { type: 'string', required: true, description: 'Display name of the new group.' },
+-    },
+-    output: {
+-      schema: {
+-        type: 'object',
+-        additionalProperties: false,
+-        properties: { id: { type: 'string', required: true } },
+-      },
+-      render: (args, value) => [{ type: 'text', text: `Group "${args.name}" created (id ${value.id}).` }],
+-    },
+-    async execute(args) {
+-      return api.groupsCreate(args);
+-    },
+-  });
+-
+-  tool({
+-    name: 'manager_groups_delete',
+-    description: 'Delete a skill group by id. Its skills are not removed from other groups.',
+-    parameters: {
+-      id: { type: 'string', required: true, description: 'Stable group id.' },
+-    },
+-    output: {
+-      schema: {
+-        type: 'object',
+-        additionalProperties: false,
+-        properties: {
+-          id: { type: 'string', required: true },
+-        },
+-      },
+-      render: (args) => [{ type: 'text', text: `Group ${args.id} deleted.` }],
+-    },
+-    async execute(args) {
+-      return api.groupsDelete(args);
+-    },
+-  });
+-
+-  tool({
+-    name: 'manager_groups_rename',
+-    description: 'Rename a skill group by id.',
+-    parameters: {
+-      id: { type: 'string', required: true, description: 'Stable group id.' },
+-      name: { type: 'string', required: true, description: 'New display name.' },
+-    },
+-    output: {
+-      schema: {
+-        type: 'object',
+-        additionalProperties: false,
+-        properties: {
+-          id: { type: 'string', required: true },
+-          name: { type: 'string', required: true },
+-        },
+-      },
+-      render: (args) => [{ type: 'text', text: `Group ${args.id} renamed to "${args.name}".` }],
+-    },
+-    async execute(args) {
+-      return api.groupsRename(args);
+-    },
+-  });
+-
+-  tool({
+-    name: 'manager_groups_set_enabled',
+-    description: 'Enable or disable a skill group. Disabling removes its skills from the injected catalog; enabling re-injects them (union-deduped across enabled groups).',
+-    parameters: {
+-      id: { type: 'string', required: true, description: 'Stable group id.' },
+-      enabled: { type: 'boolean', required: true, description: 'New enabled state.' },
+-    },
+-    output: {
+-      schema: {
+-        type: 'object',
+-        additionalProperties: false,
+-        properties: {
+-          id: { type: 'string', required: true },
+-          enabled: { type: 'boolean', required: true },
+-        },
+-      },
+-      render: (args) => [{ type: 'text', text: `Group ${args.id} ${args.enabled ? 'enabled' : 'disabled'}.` }],
+-    },
+-    async execute(args) {
+-      return api.groupsSetEnabled(args);
+-    },
+-  });
+-
+-  tool({
+-    name: 'manager_groups_add_skill',
+-    description: 'Add a skill name to a group. The same skill may exist in several groups; injection dedups by union.',
+-    parameters: {
+-      id: { type: 'string', required: true, description: 'Stable group id.' },
+-      skill: { type: 'string', required: true, description: 'Skill name (kebab-case) to add.' },
+-    },
+-    output: {
+-      schema: {
+-        type: 'object',
+-        additionalProperties: false,
+-        properties: {
+-          id: { type: 'string', required: true },
+-          skills: { type: 'array', required: true, items: { type: 'string' } },
+-        },
+-      },
+-      render: (args) => [{ type: 'text', text: `Skill "${args.skill}" added to group ${args.id}.` }],
+-    },
+-    async execute(args) {
+-      return api.groupsAddSkill(args);
+-    },
+-  });
+-
+-  tool({
+-    name: 'manager_groups_remove_skill',
+-    description: 'Remove a skill name from a group.',
+-    parameters: {
+-      id: { type: 'string', required: true, description: 'Stable group id.' },
+-      skill: { type: 'string', required: true, description: 'Skill name to remove.' },
+-    },
+-    output: {
+-      schema: {
+-        type: 'object',
+-        additionalProperties: false,
+-        properties: {
+-          id: { type: 'string', required: true },
+-          skills: { type: 'array', required: true, items: { type: 'string' } },
+-        },
+-      },
+-      render: (args) => [{ type: 'text', text: `Skill "${args.skill}" removed from group ${args.id}.` }],
+-    },
+-    async execute(args) {
+-      return api.groupsRemoveSkill(args);
+-    },
+-  });
+-
+-  tool({
+-    name: 'manager_skills_list',
+-    description: 'List every skill currently available in the global catalog (name, description, invocation policy) for picking group members.',
+-    parameters: {},
+-    output: {
+-      schema: {
+-        type: 'object',
+-        additionalProperties: false,
+-        properties: {
+-          skills: {
+-            type: 'array',
+-            required: true,
+-            items: {
+-              type: 'object',
+-              additionalProperties: false,
+-              properties: {
+-                name: { type: 'string', required: true },
+-                description: { type: 'string', required: true },
+-                invocation: {
+-                  type: 'object',
+-                  additionalProperties: false,
+-                  properties: {
+-                    modelInvocable: { type: 'boolean', required: true },
+-                    userInvocable: { type: 'boolean', required: true },
+-                  },
+-                },
+-              },
+-            },
+-          },
+-        },
+-      },
+-      render: (args, value) => [{ type: 'text', text: JSON.stringify(value) }],
+-    },
+-    async execute() {
+-      return api.skillsList();
+-    },
+-  });
+-
+-  tool({
+-    name: 'manager_mcp_list',
+-    description: 'List every MCP server (profile-configured and user-added) with source, enabled flag, live tool count, and activation state.',
+-    parameters: {},
+-    output: {
+-      schema: {
+-        type: 'object',
+-        additionalProperties: false,
+-        properties: {
+-          servers: {
+-            type: 'array',
+-            required: true,
+-            items: {
+-              type: 'object',
+-              additionalProperties: false,
+-              properties: {
+-                serverName: { type: 'string', required: true },
+-                source: { type: 'string', required: true },
+-                enabled: { type: 'boolean', required: true },
+-                toolCount: { type: 'number', required: true },
+-                live: { type: 'boolean', required: true },
+-              },
+-            },
+-          },
+-        },
+-      },
+-      render: (args, value) => [{ type: 'text', text: JSON.stringify(value) }],
+-    },
+-    async execute() {
+-      return api.mcpList();
+-    },
+-  });
+-
+-  tool({
+-    name: 'manager_mcp_toggle',
+-    description: 'Enable or disable an MCP server. Profile-configured servers are restricted per agent (tools removed from the catalog); user-added servers are dynamically mounted/unmounted.',
+-    parameters: {
+-      serverName: { type: 'string', required: true, description: 'MCP server name.' },
+-      enabled: { type: 'boolean', required: true, description: 'New enabled state.' },
+-    },
+-    output: {
+-      schema: {
+-        type: 'object',
+-        additionalProperties: false,
+-        properties: {
+-          serverName: { type: 'string', required: true },
+-          enabled: { type: 'boolean', required: true },
+-        },
+-      },
+-      render: (args) => [{ type: 'text', text: `MCP server "${args.serverName}" ${args.enabled ? 'enabled' : 'disabled'}.` }],
+-    },
+-    async execute(args) {
+-      return api.mcpToggle(args);
+-    },
+-  });
+-
+-  tool({
+-    name: 'manager_mcp_add',
+-    description: 'Add a new user-managed MCP server (persisted and mounted immediately). stdio needs command/args/env; streamable-http needs url.',
+-    parameters: {
+-      serverName: { type: 'string', required: true, description: 'Unique server name (^[A-Za-z0-9_-]{1,32}$).' },
+-      transport: { type: 'string', required: true, description: '"stdio" or "streamable-http".' },
+-      command: { type: 'string', description: 'stdio: executable command.' },
+-      args: { type: 'array', items: { type: 'string' }, description: 'stdio: command arguments.' },
+-      env: { type: 'object', additionalProperties: true, description: 'stdio: environment overrides (string values).' },
+-      url: { type: 'string', description: 'streamable-http: endpoint URL.' },
+-    },
+-    output: {
+-      schema: {
+-        type: 'object',
+-        additionalProperties: false,
+-        properties: {
+-          serverName: { type: 'string', required: true },
+-        },
+-      },
+-      render: (args) => [{ type: 'text', text: `MCP server "${args.serverName}" added.` }],
+-    },
+-    async execute(args) {
+-      return api.mcpAdd(args);
+-    },
+-  });
+-
+-  tool({
+-    name: 'manager_mcp_remove',
+-    description: 'Remove a user-added MCP server (unmounts it and deletes its persisted entry). Profile-configured servers cannot be removed.',
+-    parameters: {
+-      serverName: { type: 'string', required: true, description: 'MCP server name.' },
+-    },
+-    output: {
+-      schema: {
+-        type: 'object',
+-        additionalProperties: false,
+-        properties: {
+-          serverName: { type: 'string', required: true },
+-        },
+-      },
+-      render: (args) => [{ type: 'text', text: `MCP server "${args.serverName}" removed.` }],
+-    },
+-    async execute(args) {
+-      return api.mcpRemove(args);
+-    },
+-  });
+-
+   // ── 7) RPC surface for the browser half ─────────────────────────────────
+   // Bundle plugins have no `harness.handle`/`host.call` (those exist only for
+   // sandboxed dynamic plugins); the browser half calls the same business
+@@ -998,8 +625,6 @@ export function apply(ctx, config = {}) {
+   // plugin fiber. On plugin unload/reload (HMR) dispose them explicitly —
+   // otherwise a reload would hit duplicate provider names in the agent layer.
+   ctx.effect(() => () => {
+-    for (const dispose of toolDisposers) dispose();
+-    toolDisposers.length = 0;
+     for (const { dispose } of shadowControls.values()) dispose();
+     shadowControls.clear();
+     for (const { disposer } of restrictDisposers.values()) disposer();

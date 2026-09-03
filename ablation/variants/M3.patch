@@ -1,0 +1,110 @@
+diff --git a/lib/index.js b/lib/index.js
+index c204eff..0d16c9d 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -85,10 +85,6 @@ export function apply(ctx, config = {}) {
+   // Per-apply runtime bookkeeping (all plain data, no live objects).
+   /** agent.id -> { control, dispose } of the shadow provider registration. */
+   const shadowControls = new Map();
+-  /** agent.id -> disposer of the current tools.restrict({ deny }) layer. */
+-  const restrictDisposers = new Map();
+-  /** agent.id set while applyMcpRestrictions is running for that agent. */
+-  const applyingRestrictions = new Set();
+   /** serverName -> mounted ctx.plugin fiber (user-added servers only). */
+   const mountedMcp = new Map();
+   /** Serializes read-modify-write cycles so concurrent calls never interleave. */
+@@ -183,51 +179,6 @@ export function apply(ctx, config = {}) {
+     for (const { control } of shadowControls.values()) control.invalidate();
+   }
+ 
+-  // ── 3) MCP restrict (profile servers) ────────────────────────────────────
+-  // IMPORTANT: applying a restriction emits `tools/change`, and our
+-  // `tools/change` listener re-runs this function. Unconditionally swapping
+-  // the restriction layer would therefore loop forever (restrict → change →
+-  // restrict → …) and churn the tool registry, which flickered the whole UI.
+-  // We only swap when the deny set actually changed.
+-  function applyMcpRestrictions(agent) {
+-    // Reentrancy guard: `tools.restrict()` emits `tools/change` SYNCHRONOUSLY
+-    // (ScopedLayers.effect notifies right after the layer mutation), and the
+-    // disposer of a previous restriction does the same on teardown. Our
+-    // `tools/change` listener re-runs this function, so without the guard the
+-    // reentrant call sees no current restriction (the map entry is only
+-    // written after restrict() returns), recomputes the same deny set, and
+-    // calls restrict() again — an unbounded synchronous recursion that
+-    // stack-overflows and wedges the whole dsh process (observed as the
+-    // manager freezing when an MCP server with live tools is disabled).
+-    if (applyingRestrictions.has(agent.id)) return;
+-    applyingRestrictions.add(agent.id);
+-    try {
+-      const deny = denyNamesForDisabled(store.get(), ctx.tools.schemas());
+-      const current = restrictDisposers.get(agent.id);
+-      if (current !== undefined && current.deny.join('\u0000') === deny.join('\u0000')) {
+-        return; // unchanged — do not touch the registry, do not emit tools/change
+-      }
+-      if (current !== undefined) {
+-        // Remove BEFORE disposing: the disposer emits tools/change, and the
+-        // reentrant listener call must not see a stale entry (it would
+-        // dispose again and re-emit — the same unbounded loop).
+-        restrictDisposers.delete(agent.id);
+-        current.disposer();
+-      }
+-      if (deny.length === 0) return;
+-      const tools = agent.ctx.get('tools');
+-      if (tools === undefined) return;
+-      const disposer = tools.restrict({ deny });
+-      restrictDisposers.set(agent.id, { deny, disposer });
+-    } finally {
+-      applyingRestrictions.delete(agent.id);
+-    }
+-  }
+-
+-  function applyMcpRestrictionsToAll() {
+-    for (const agent of ctx.agents.list()) applyMcpRestrictions(agent);
+-  }
+-
+   // ── 4) MCP dynamic mount (user-added servers) ───────────────────────────
+   // User-added servers are mounted as loader entries named
+   // '@deepseek-ai/dsh-mcp-client' (resolved from the global dsh install,
+@@ -297,7 +248,6 @@ export function apply(ctx, config = {}) {
+   /** Re-apply every dynamic effect after a state change. */
+   function applyStateEffects() {
+     refreshSkillCatalogs();
+-    applyMcpRestrictionsToAll();
+   }
+ 
+   function requireGroup(state, id) {
+@@ -1002,8 +952,6 @@ export function apply(ctx, config = {}) {
+     toolDisposers.length = 0;
+     for (const { dispose } of shadowControls.values()) dispose();
+     shadowControls.clear();
+-    for (const { disposer } of restrictDisposers.values()) disposer();
+-    restrictDisposers.clear();
+     // User-added MCP mounts are loader entries; remove them explicitly on
+     // unload so they do not outlive this plugin fiber.
+     for (const entryId of mountedMcp.values()) {
+@@ -1014,25 +962,14 @@ export function apply(ctx, config = {}) {
+ 
+   for (const agent of ctx.agents.list()) {
+     applyAgentFilter(agent);
+-    applyMcpRestrictions(agent);
+   }
+ 
+   ctx.on('agent/created', ({ agent }) => {
+     applyAgentFilter(agent);
+-    applyMcpRestrictions(agent);
+   });
+ 
+   ctx.on('agent/disposed', ({ agent }) => {
+     shadowControls.delete(agent.id);
+-    restrictDisposers.delete(agent.id);
+-  });
+-
+-  // New tools appear (server reconnects, mounts settle): retry restrict so
+-  // disabled servers' tools are denied as soon as they register. The
+-  // compare-before-apply guard in applyMcpRestrictions keeps this from
+-  // looping (restrict emits tools/change).
+-  ctx.on('tools/change', () => {
+-    applyMcpRestrictionsToAll();
+   });
+ 
+   // Startup: mount every enabled user-added server (persisted state carries

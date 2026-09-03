@@ -1,0 +1,100 @@
+diff --git a/lib/index.js b/lib/index.js
+index c204eff..50f52e5 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -58,12 +58,6 @@ export const inject = ['skills', 'tools', 'agents', 'loader'];
+ const SHADOW_PROVIDER_NAME = 'skill-manager-filter';
+ /** Loader entry name of the MCP client plugin. */
+ const MCP_PLUGIN_NAME = '@deepseek-ai/dsh-mcp-client';
+-/** Web-server service key candidates, newest first. */
+-const WEB_SERVER_KEYS = ['webServer', 'httpServer'];
+-/** Base path of the browser-half RPC route. */
+-const RPC_PATH = '/plugins/dsh-skills-mcp-group-manager/rpc';
+-/** Max RPC request body bytes. */
+-const MAX_RPC_BODY_BYTES = 64 * 1024;
+ 
+ /**
+  * Host half plugin.
+@@ -916,82 +910,6 @@ export function apply(ctx, config = {}) {
+     },
+   });
+ 
+-  // ── 7) RPC surface for the browser half ─────────────────────────────────
+-  // Bundle plugins have no `harness.handle`/`host.call` (those exist only for
+-  // sandboxed dynamic plugins); the browser half calls the same business
+-  // logic over one JSON POST route. Method names match the plan exactly.
+-  const rpcMethods = {
+-    'manager.state.get': async () => api.stateGet(),
+-    'manager.skills.list': async () => api.skillsList(),
+-    'manager.groups.create': async (args) => api.groupsCreate(args),
+-    'manager.groups.rename': async (args) => api.groupsRename(args),
+-    'manager.groups.delete': async (args) => api.groupsDelete(args),
+-    'manager.groups.setEnabled': async (args) => api.groupsSetEnabled(args),
+-    'manager.groups.addSkill': async (args) => api.groupsAddSkill(args),
+-    'manager.groups.removeSkill': async (args) => api.groupsRemoveSkill(args),
+-    'manager.mcp.list': async () => api.mcpList(),
+-    'manager.mcp.toggle': async (args) => api.mcpToggle(args),
+-    'manager.mcp.add': async (args) => api.mcpAdd(args),
+-    'manager.mcp.remove': async (args) => api.mcpRemove(args),
+-  };
+-
+-  async function readJsonBody(req) {
+-    const chunks = [];
+-    let received = 0;
+-    for await (const chunk of req) {
+-      received += chunk.byteLength;
+-      if (received > MAX_RPC_BODY_BYTES) throw new Error('request body too large');
+-      chunks.push(chunk);
+-    }
+-    if (chunks.length === 0) return {};
+-    const text = Buffer.concat(chunks).toString('utf8');
+-    const parsed = JSON.parse(text);
+-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+-      throw new Error('request body must be a JSON object');
+-    }
+-    return parsed;
+-  }
+-
+-  function sendJson(res, status, payload) {
+-    const body = JSON.stringify(payload);
+-    res.writeHead(status, {
+-      'content-type': 'application/json; charset=utf-8',
+-      'cache-control': 'no-store',
+-    });
+-    res.end(body);
+-  }
+-
+-  let webRegistered = false;
+-  const registerWebSurface = () => {
+-    if (webRegistered) return;
+-    const webServer = ctx.get(WEB_SERVER_KEYS[0]) ?? ctx.get(WEB_SERVER_KEYS[1]);
+-    if (webServer === undefined) return;
+-    webRegistered = true;
+-    ctx.effect(() => webServer.register({
+-      kind: 'exact',
+-      path: RPC_PATH,
+-      handler: async (req, res) => {
+-        try {
+-          const body = await readJsonBody(req);
+-          const method = body.method;
+-          const handler = typeof method === 'string' ? rpcMethods[method] : undefined;
+-          if (handler === undefined) {
+-            sendJson(res, 400, { ok: false, error: `unknown method ${JSON.stringify(method)}` });
+-            return;
+-          }
+-          const value = await handler(body.args ?? {});
+-          sendJson(res, 200, { ok: true, value });
+-        } catch (error) {
+-          sendJson(res, 200, { ok: false, error: error instanceof Error ? error.message : String(error) });
+-        }
+-      },
+-    }), 'mcp-skill-manager: rpc route');
+-  };
+-  registerWebSurface();
+-  ctx.on('internal/service', (serviceName) => {
+-    if (WEB_SERVER_KEYS.includes(serviceName)) registerWebSurface();
+-  });
+-
+   // ── 8) apply to live agents + lifecycle wiring ──────────────────────────
+   // Shadow providers and restrict layers are registered on AGENT fibers (they
+   // must live as long as the agent), so they are NOT auto-disposed with this

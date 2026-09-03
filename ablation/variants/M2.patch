@@ -1,0 +1,144 @@
+diff --git a/lib/index.js b/lib/index.js
+index c204eff..26e0d79 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -83,8 +83,6 @@ export function apply(ctx, config = {}) {
+   store.loadSync();
+ 
+   // Per-apply runtime bookkeeping (all plain data, no live objects).
+-  /** agent.id -> { control, dispose } of the shadow provider registration. */
+-  const shadowControls = new Map();
+   /** agent.id -> disposer of the current tools.restrict({ deny }) layer. */
+   const restrictDisposers = new Map();
+   /** agent.id set while applyMcpRestrictions is running for that agent. */
+@@ -94,95 +92,6 @@ export function apply(ctx, config = {}) {
+   /** Serializes read-modify-write cycles so concurrent calls never interleave. */
+   let writeChain = Promise.resolve();
+ 
+-  // ── 2) skill-catalog filtering ──────────────────────────────────────────
+-  function applyAgentFilter(agent) {
+-    if (shadowControls.has(agent.id)) return;
+-    // IMPORTANT: use agent.ctx.get('skills') — NOT agent.ctx.skills. In the
+-    // running process the agent ctx's inject map lacks 'skills', so the
+-    // property access throws the Cordis Guard error ("cannot get property
+-    // skills without inject") and crashes the plugin tree at boot when
+-    // sessions are restored; get() resolves the service directly.
+-    const skills = agent.ctx.get('skills');
+-    if (skills === undefined) return;
+-    let controlRef;
+-    const dispose = skills.registerProvider((control) => {
+-      controlRef = control; // factory runs synchronously; captured for invalidate()
+-      // Re-entrancy guard: this provider's own list() must read the agent's
+-      // view to see agent-plane skills (user-dsh/project providers live in
+-      // the agent layer, NOT the global layer — alpha.4 layer split). Reading
+-      // that view re-enters this list() through the registry; the re-entrant
+-      // call yields NO candidates so the enclosing call can enumerate the raw
+-      // catalog (the registry overwrites the intermediate cached layer with
+-      // this provider's filtered output once the outer call completes).
+-      let catalogInFlight = false;
+-      return {
+-        name: SHADOW_PROVIDER_NAME,
+-        async list(options) {
+-          if (catalogInFlight) return [];
+-          catalogInFlight = true;
+-          try {
+-            // Union of the global view (bundled providers) and this agent's
+-            // raw view (global + agent-plane providers, shadow stripped). This
+-            // is exactly the catalog the agent sees, so the group allowlist
+-            // can suppress agent-plane skills too — the pre-alpha.4 shadow
+-            // only ever saw the global layer and silently stopped filtering
+-            // user-dsh skills.
+-            const byName = new Map();
+-            const globalNames = new Set();
+-            for (const skill of await ctx.skills.list({ cwd: options.cwd, signal: options.signal })) {
+-              globalNames.add(skill.name);
+-              byName.set(skill.name, skill);
+-            }
+-            const raw = await skills.list({ cwd: options.cwd, signal: options.signal, scope: agent });
+-            for (const skill of raw) {
+-              if (!byName.has(skill.name)) byName.set(skill.name, skill);
+-            }
+-            const enabled = enabledSkillNames(store.get());
+-            const out = [];
+-            for (const [name, skill] of byName) {
+-              if (enabled.has(name)) {
+-                // Enabled GLOBAL skills keep today's shadow emission (the
+-                // provider field survives; body loading still resolves through
+-                // the host view). Enabled agent-plane skills are left to their
+-                // filesystem provider: emitting them would shadow the real
+-                // candidate's get(), which cannot resolve agent-plane bodies.
+-                if (!globalNames.has(name)) continue;
+-              }
+-              out.push({
+-                name,
+-                description: skill.description,
+-                ...(skill.whenToUse !== undefined ? { whenToUse: skill.whenToUse } : {}),
+-                invocation: enabled.has(name)
+-                  ? skill.invocation
+-                  : { modelInvocable: false, userInvocable: false },
+-                source: skill.source,
+-                provider: SHADOW_PROVIDER_NAME, // must equal this provider's name
+-                ...(skill.resourceBase !== undefined ? { resourceBase: skill.resourceBase } : {}),
+-                rank: 0, // sole shadow candidate for every name in this layer
+-                locator: name, // opaque handle, passed back to get()
+-              });
+-            }
+-            return out;
+-          } finally {
+-            catalogInFlight = false;
+-          }
+-        },
+-        async get(candidate, options) {
+-          // Delegate body loading to the global view (resolves to the real
+-          // filesystem provider's candidate). Disabled skills never reach
+-          // get(): dsh-tool-skill's isModelInvocable gate refuses them after
+-          // list().
+-          return ctx.skills.get(candidate.name, { cwd: options.cwd, signal: options.signal });
+-        },
+-      };
+-    });
+-    shadowControls.set(agent.id, { control: controlRef, dispose });
+-  }
+-
+-  function refreshSkillCatalogs() {
+-    for (const { control } of shadowControls.values()) control.invalidate();
+-  }
+-
+   // ── 3) MCP restrict (profile servers) ────────────────────────────────────
+   // IMPORTANT: applying a restriction emits `tools/change`, and our
+   // `tools/change` listener re-runs this function. Unconditionally swapping
+@@ -296,7 +205,6 @@ export function apply(ctx, config = {}) {
+ 
+   /** Re-apply every dynamic effect after a state change. */
+   function applyStateEffects() {
+-    refreshSkillCatalogs();
+     applyMcpRestrictionsToAll();
+   }
+ 
+@@ -1000,8 +908,6 @@ export function apply(ctx, config = {}) {
+   ctx.effect(() => () => {
+     for (const dispose of toolDisposers) dispose();
+     toolDisposers.length = 0;
+-    for (const { dispose } of shadowControls.values()) dispose();
+-    shadowControls.clear();
+     for (const { disposer } of restrictDisposers.values()) disposer();
+     restrictDisposers.clear();
+     // User-added MCP mounts are loader entries; remove them explicitly on
+@@ -1013,17 +919,14 @@ export function apply(ctx, config = {}) {
+   }, 'mcp-skill-manager: agent-layer cleanup');
+ 
+   for (const agent of ctx.agents.list()) {
+-    applyAgentFilter(agent);
+     applyMcpRestrictions(agent);
+   }
+ 
+   ctx.on('agent/created', ({ agent }) => {
+-    applyAgentFilter(agent);
+     applyMcpRestrictions(agent);
+   });
+ 
+   ctx.on('agent/disposed', ({ agent }) => {
+-    shadowControls.delete(agent.id);
+     restrictDisposers.delete(agent.id);
+   });
+ 

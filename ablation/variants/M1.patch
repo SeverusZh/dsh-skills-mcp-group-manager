@@ -1,0 +1,38 @@
+diff --git a/lib/index.js b/lib/index.js
+index c204eff..d80ffec 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -49,8 +49,6 @@ import {
+   toolsOfServer,
+   validateMcpServerInput,
+ } from './state.js';
+-import { createStateStore } from './store.js';
+-
+ export const name = 'mcp-skill-manager';
+ export const inject = ['skills', 'tools', 'agents', 'loader'];
+ 
+@@ -76,11 +74,19 @@ const MAX_RPC_BODY_BYTES = 64 * 1024;
+  * whole dsh process (observed as the service crash-restart "flicker").
+  */
+ export function apply(ctx, config = {}) {
+-  // ── 1) state model & persistence ─────────────────────────────────────────
+-  // Plugin-owned state file (NOT settings.yaml): `<harness home>/
+-  // mcp-skill-manager/state.json`, removed on uninstall via postuninstall.
+-  const store = createStateStore({ dshHome: process.env.DSH_HOME, logger: ctx.logger });
+-  store.loadSync();
++  // ── 1) state model (in-memory only; persistence ablated) ────────────────
++  // Original: createStateStore({ dshHome, logger }) + loadSync() persisted
++  // `<harness home>/mcp-skill-manager/state.json` (atomic write). Ablated:
++  // the store keeps the same surface but never touches the disk.
++  let state = { groups: [], mcp: [] };
++  const store = {
++    get() { return state; },
++    update(patch) { state = { ...state, ...patch }; return Promise.resolve(); },
++    replace(next) { state = next; return Promise.resolve(); },
++    loadSync() { return state; },
++    load() { return Promise.resolve(state); },
++    persist() { return Promise.resolve(); },
++  };
+ 
+   // Per-apply runtime bookkeeping (all plain data, no live objects).
+   /** agent.id -> { control, dispose } of the shadow provider registration. */

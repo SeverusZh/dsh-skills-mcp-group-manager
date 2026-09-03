@@ -1,0 +1,80 @@
+[
+  {
+    "variant": "M1",
+    "loadOk": true,
+    "checks": {
+      "no-state-file": "ok",
+      "in-memory-works": "ok",
+      "tools-registered": "ok",
+      "rpc-registered": "ok"
+    },
+    "pass": true,
+    "note": "移除 createStateStore/loadSync → 状态仅存内存，不落盘"
+  },
+  {
+    "variant": "M2",
+    "loadOk": true,
+    "checks": {
+      "no-shadow-provider": "ok",
+      "tools-registered": "ok",
+      "restrict-applied": "ok",
+      "rpc-registered": "ok",
+      "persist-works": "ok"
+    },
+    "pass": true,
+    "note": "移除 applyAgentFilter → 无 shadow provider 注册"
+  },
+  {
+    "variant": "M3",
+    "loadOk": true,
+    "checks": {
+      "no-restrict": "ok",
+      "shadow-provider": "ok",
+      "tools-registered": "ok",
+      "rpc-registered": "ok",
+      "mount-works": "ok"
+    },
+    "pass": true,
+    "note": "移除 applyMcpRestrictions/applyMcpRestrictionsToAll → 无 tools.restrict"
+  },
+  {
+    "variant": "M4",
+    "loadOk": true,
+    "checks": {
+      "no-tools": "ok",
+      "rpc-registered": "ok",
+      "rpc-works": "ok",
+      "shadow-provider": "ok",
+      "restrict-applied": "ok"
+    },
+    "pass": true,
+    "note": "移除 tool() 注册循环 → 无 manager_* 工具"
+  },
+  {
+    "variant": "M5",
+    "loadOk": true,
+    "checks": {
+      "no-rpc-route": "ok",
+      "no-internal-service-listener": "ok",
+      "tools-registered": "ok",
+      "tools-work": "ok",
+      "shadow-provider": "ok",
+      "restrict-applied": "ok"
+    },
+    "pass": true,
+    "note": "移除 registerWebSurface → 无 RPC 路由"
+  },
+  {
+    "variant": "M6",
+    "loadOk": true,
+    "checks": {
+      "client-no-import": "ok",
+      "client-no-index-ref": "ok",
+      "index-no-client-ref": "ok",
+      "client-plugin-face": "ok",
+      "rpc-path-consistent": "ok"
+    },
+    "pass": true,
+    "note": "静态验证：client.js 独立于 index.js（模块解耦）"
+  }
+]
