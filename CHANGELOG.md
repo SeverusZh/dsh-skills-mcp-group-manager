@@ -5,6 +5,29 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] - 2026-09-24
+
+### Changed
+
+- **DSH 0.1.7-rc.1 compatibility.** `peerDependencies` for
+  `@deepseek-ai/dsh-mcp-client` and `@deepseek-ai/dsh-tools` move from
+  `^0.1.5-rc.1` to `^0.1.7-rc.1`; `dsh.compatibility.dshReleases` gains
+  `"0.1.7-rc.1": "compatible"`; README badges and the compatibility note are
+  updated. Verified by a real load on 0.1.7-rc.1 (host entry active, zero
+  errors).
+
+### Verified (no source change required)
+
+- The MCP client schema this plugin mounts (`mcpClientConfig`: `transport` /
+  `serverName` / `command` / `args` / `env` / `toolCallTimeoutMs` /
+  `failOnStartupError`; streamable-http: `url` / `headers`) is unchanged in
+  `@deepseek-ai/dsh-mcp-client@0.1.7-rc.1`, so the dynamic MCP mount and the
+  loader `create(id, …)` / `remove(id)` calls remain valid.
+- The host contracts it consumes — `agent/created` (`{ agent }`),
+  `agent/disposed`, `tools/change`, `internal/service`, `ctx.loader.entries()`,
+  `ctx.tools.restrict({ deny })`, and the `webServer` prefix route — are all
+  present and unchanged in 0.1.7-rc.1.
+
 ## [0.3.4] - 2026-09-22
 
 ### Added

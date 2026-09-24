@@ -10,12 +10,12 @@
 [![GitHub release](https://img.shields.io/github/v/release/SeverusZh/dsh-skills-mcp-group-manager?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-skills-mcp-group-manager/releases)
 [![GitHub stars](https://img.shields.io/github/stars/SeverusZh/dsh-skills-mcp-group-manager?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-skills-mcp-group-manager)
 [![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen?style=flat-square&logo=node.js)](package.json)
-[![DSH](https://img.shields.io/badge/DSH%200.1.5--rc.1%20%2F%20rc.2%20%2F%200.1.6--alpha.2-blue?style=flat-square)](https://github.com/deepseek-ai/dsh)
+[![DSH](https://img.shields.io/badge/DSH%200.1.5--rc.1%20%2F%20rc.2%20%2F%200.1.6--alpha.2%20%2F%200.1.7--rc.1-blue?style=flat-square)](https://github.com/deepseek-ai/dsh)
 
 ---
 
-> **兼容性 / Compatibility**：v0.3.3 支持 DSH **0.1.5-rc.1+**，已在 **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2** 实测（peer `^0.1.5-rc.1`，真实 dsh-tools registry 探针通过）；旧版 DSH（0.1.0-rc.x）请使用最后兼容的 npm 版本 **0.3.2**。
-> v0.3.3 targets DSH **0.1.5-rc.1+**, verified on **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2**; for older DSH releases use the last compatible npm version **0.3.2**.
+> **兼容性 / Compatibility**：v0.3.5 支持 DSH **0.1.5-rc.1+**，已在 **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1** 实测（peer `^0.1.7-rc.1`，真实 dsh-tools registry 探针通过）；旧版 DSH（0.1.0-rc.x）请使用最后兼容的 npm 版本 **0.3.2**。
+> v0.3.5 targets DSH **0.1.5-rc.1+**, verified on **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1**; for older DSH releases use the last compatible npm version **0.3.2**.
 
 ## ✨ 功能特性 / Features
 
