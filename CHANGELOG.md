@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5-beta.0] - 2026-09-24
+
+### Beta（DSH 0.1.7-rc.1 适配，测试版）
+
+- 本分支（`dev-0.1.7.rc1`，尚未合并 `main`）相对 `main` 的适配改动：
+  `peerDependencies` 的 `@deepseek-ai/dsh-mcp-client`、`@deepseek-ai/dsh-tools` 由
+  `^0.1.5-rc.1` 升至 `^0.1.7-rc.1`；`dsh.compatibility.dshReleases` 新增
+  `"0.1.7-rc.1": "compatible"`；README 徽章与兼容性说明同步。源码逻辑无变更。
+- 发布为 npm 测试版（`--tag beta`）；`latest` 保持不变。正式版 `0.3.5` 待 `main` 合并后发布。
+
 ## [0.3.5] - 2026-09-24
 
 ### Changed
