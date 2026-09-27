@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.6] - 2026-09-27
+
+### Fixed
+
+- **Removed the retired `@deepseek-ai/dsh-client-runtime` from `dsh.client.inject`.**
+  That package's last npm release is `0.1.1-rc.2` and it is absent from the DSH
+  0.1.7-rc.2 install tree, so the client half was declaring a dependency on a
+  module that can never resolve (the client half would wait forever). It appeared
+  only in that single manifest entry — the source has zero references — so the
+  removal is safe. The other three inject entries (`@deepseek-ai/dsh-client-locale`,
+  `@deepseek-ai/dsh-client-ui-conversation`, `@deepseek-ai/dsh-client-ui-layout`)
+  all resolve at 0.1.7-rc.2 and are unchanged.
+- Verified: `node --test` → 50 pass / 0 fail (2 skipped);
+  `evaluatePluginCompatibility()` at runtime 0.1.7-rc.2 → PASS.
+
 ## [0.3.5] - 2026-09-25
 
 ### Changed
