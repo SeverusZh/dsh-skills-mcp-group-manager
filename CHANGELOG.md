@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.7] - 2026-09-29
+
+### Compatibility
+
+- **DSH 0.2.0-rc.1 support**: widened both `@deepseek-ai/dsh-*` `peerDependencies` ranges
+  (`dsh-mcp-client`, `dsh-tools`) from `^0.1.7-rc.1` to the open-ended `>=0.1.7-rc.1`.
+  DSH 0.2.0-rc.1 adds a plugin compatibility gate that runs an `includePrerelease` semver
+  check over every `@deepseek-ai/dsh` / `@deepseek-ai/dsh-*` peer; the old `^0.1.7-rc.1`
+  range does not match 0.2.0-rc.1 and causes the whole bundle to be skipped
+  (`skipping profile bundle`), while `>=0.1.7-rc.1` satisfies both 0.1.7-rc.2 and
+  0.2.0-rc.1. `@deepseek-ai/cordis` is not part of the gate and is unchanged.
+- Verified by a real load on **0.2.0-rc.1** (plugin loads cleanly, no gate skip);
+  `dsh.compatibility.dshReleases` gains `"0.2.0-rc.1": "compatible"` and the README
+  badge / compatibility note are updated.
+
 ## [0.3.6] - 2026-09-27
 
 ### Fixed
