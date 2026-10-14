@@ -1,21 +1,23 @@
-# DeepSeek Harness Skills & MCPs 分组管理器
+<div align="center">
 
-**DeepSeek Harness Skills & MCPs Group Manager** — DSH 插件:分组管理 Skills、过滤模型技能目录、独立开关 MCP 服务器,左侧面板一键管理。
+# 🗂️ DeepSeek Harness Skills & MCPs 分组管理器
 
-> A DSH plugin that groups Skills, filters the model skill catalog, toggles MCP servers independently, and manages everything from a left panel.
+**DSH 插件:分组管理 Skills、过滤模型技能目录、独立开关 MCP 服务器,左侧面板一键管理**
 
-[![npm version](https://img.shields.io/npm/v/dsh-skills-mcp-group-manager.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/dsh-skills-mcp-group-manager)
-[![npm downloads](https://img.shields.io/npm/dm/dsh-skills-mcp-group-manager.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/dsh-skills-mcp-group-manager)
-[![license](https://img.shields.io/npm/l/dsh-skills-mcp-group-manager.svg?style=flat-square)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/dsh-skills-mcp-group-manager?style=flat-square&logo=npm)](https://www.npmjs.com/package/dsh-skills-mcp-group-manager)
+[![npm downloads](https://img.shields.io/npm/dm/dsh-skills-mcp-group-manager?style=flat-square&logo=npm)](https://www.npmjs.com/package/dsh-skills-mcp-group-manager)
+[![license](https://img.shields.io/npm/l/dsh-skills-mcp-group-manager?style=flat-square)](LICENSE)
+[![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen?style=flat-square&logo=node.js)](package.json)
 [![GitHub release](https://img.shields.io/github/v/release/SeverusZh/dsh-skills-mcp-group-manager?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-skills-mcp-group-manager/releases)
 [![GitHub stars](https://img.shields.io/github/stars/SeverusZh/dsh-skills-mcp-group-manager?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-skills-mcp-group-manager)
-[![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen?style=flat-square&logo=node.js)](package.json)
-[![DSH](https://img.shields.io/badge/DSH%200.1.5--rc.1%20%2F%20rc.2%20%2F%200.1.6--alpha.2%20%2F%200.1.7--rc.1%20%2F%20rc.2%20%2F%200.2.0--rc.1-blue?style=flat-square)](https://github.com/deepseek-ai/dsh)
+[![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.1.7--rc.1-blue?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com)
+
+</div>
+
+A DSH plugin that groups Skills, filters the model skill catalog, toggles MCP servers independently, and manages everything from a left panel.
 
 ---
-
-> **兼容性 / Compatibility**：v0.3.7 支持 DSH **0.1.5-rc.1+**，已在 **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1** 实测（peer `>=0.1.7-rc.1`，真实 dsh-tools registry 探针通过；0.1.7-rc.2 上 `manager.state.get` RPC 实测返回；0.2.0-rc.1 上通过新的兼容性门禁并正常加载）；旧版 DSH（0.1.0-rc.x）请使用最后兼容的 npm 版本 **0.3.2**。
-> v0.3.7 targets DSH **0.1.5-rc.1+**, verified on **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1**; for older DSH releases use the last compatible npm version **0.3.2**.
 
 ## ✨ 功能特性 / Features
 
@@ -24,8 +26,6 @@
 - **🔌 MCP 管理 / MCP Management** — 枚举全部 MCP 服务器(profile 配置 + 用户新增),独立开关;用户新增的 MCP 动态挂载并持久化,重启自动恢复。
 - **💾 持久化 / Persistence** — `~/.dsh/mcp-skill-manager/state.json`(原子写),下次会话默认沿用上次分组设置。
 - **🖥️ UI** — 对话框左侧分组管理面板(`shell.overlay`)+ 会话头部开关(`conversation.session.header.actions`,带 "Skills&MCPs" 标签)。纯浮动面板,不修改产品布局。
-
----
 
 ## 📦 安装 / Install
 
@@ -38,7 +38,9 @@ dsh plugin --profile web add dsh-skills-mcp-group-manager
 
 > **为什么无需额外步骤?** 宿主半插件零外部包依赖(仅 Node 内置模块与本地模块),`dsh plugin add` 的 `link:` 安装即可直接解析,无需符号链接或构建步骤。
 
-## 🗑️ 卸载 / Uninstall(数据随插件一并删除)
+## 🗑️ 卸载 / Uninstall
+
+卸载时数据随插件一并删除。
 
 ```bash
 dsh plugin --profile web remove dsh-skills-mcp-group-manager
@@ -46,9 +48,7 @@ dsh plugin --profile web remove dsh-skills-mcp-group-manager
 
 卸载时 pnpm 会执行包的 `postuninstall` 脚本(`scripts/cleanup.mjs`),删除整个状态目录 `~/.dsh/mcp-skill-manager/`(含 `state.json`),分组与 MCP 配置随插件一同移除。手动删除亦可:`rm -rf ~/.dsh/mcp-skill-manager`。
 
----
-
-## 🧩 组成 / Structure
+## 🧱 组成 / Structure
 
 | 文件 | 说明 |
 | --- | --- |
@@ -63,8 +63,23 @@ dsh plugin --profile web remove dsh-skills-mcp-group-manager
 
 `manager_groups_list/create/delete/rename/set_enabled/add_skill/remove_skill`、`manager_skills_list`、`manager_mcp_list/toggle/add/remove`。
 
----
+## 🧩 兼容性 / Compatibility
 
-## 📄 License
+`peerDependencies` 中的 `@deepseek-ai/dsh*` 范围决定插件能否被 DSH 的兼容门禁放行。本插件声明 **`>=0.1.7-rc.1`**（无上限），并已实测：
+
+| DSH 版本 | 状态 |
+| --- | --- |
+| 0.1.5-rc.1 | ✅ 实测通过 |
+| 0.1.5-rc.2 | ✅ 实测通过 |
+| 0.1.6-alpha.2 | ✅ 实测通过 |
+| 0.1.7-rc.1 | ✅ 实测通过 |
+| 0.1.7-rc.2 | ✅ 实测通过 |
+| 0.2.0-rc.1 | ✅ 实测通过 |
+
+> 只列出**实际跑过**的版本；未实测的不列。
+
+v0.3.7 支持 DSH **0.1.5-rc.1+**，已在 **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1** 实测（peer `>=0.1.7-rc.1`，真实 dsh-tools registry 探针通过；0.1.7-rc.2 上 `manager.state.get` RPC 实测返回；0.2.0-rc.1 上通过新的兼容性门禁并正常加载）；旧版 DSH（0.1.0-rc.x）请使用最后兼容的 npm 版本 **0.3.2**。
+
+## 📄 许可证 / License
 
 [MIT](LICENSE) © [SeverusZh](https://github.com/SeverusZh)
