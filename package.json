@@ -1,6 +1,6 @@
 {
   "name": "dsh-skills-mcp-group-manager",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "DeepSeek Harness Skills & MCPs Group Manager: group skills, filter the model skill catalog, toggle MCP servers, left panel UI",
   "type": "module",
   "main": "lib/index.js",
@@ -43,7 +43,8 @@
     "url": "https://github.com/SeverusZh/dsh-skills-mcp-group-manager/issues"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18",
+    "dsh": ">=0.1.7-rc.1"
   },
   "dsh": {
     "bundle": {
@@ -64,7 +65,9 @@
         "0.1.6-alpha.2": "compatible",
         "0.1.7-rc.1": "compatible",
         "0.1.7-rc.2": "compatible",
-        "0.2.0-rc.1": "compatible"
+        "0.2.0-rc.1": "compatible",
+        "0.2.1-rc.1": "compatible",
+        "0.2.1-rc.2": "compatible"
       },
       "node": ">=18"
     }
@@ -78,5 +81,11 @@
     "*": {
       "optional": true
     }
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "~4.0.5",
+    "@deepseek-ai/dsh-mcp-client": "0.2.1-rc.1",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.1",
+    "react": "^18.3.1"
   }
 }

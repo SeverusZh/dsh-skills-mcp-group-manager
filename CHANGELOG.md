@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.8] - 2026-10-17
+
+### Compatibility
+
+- **DSH 0.2.1-rc.1 / rc.2**: added `engines.dsh: ">=0.1.7-rc.1"` (the 0.2.1 gate
+  prefers it over peer ranges) and compatibility-matrix entries for both releases.
+  The `@deepseek-ai/dsh-mcp-client` / `@deepseek-ai/dsh-tools` peers stay at the
+  open-ended `>=0.1.7-rc.1`, and the `dsh.client.inject` package list is unchanged.
+- **Verified**: all 52 tests pass, including both real-Cordis probes against the
+  installed 0.2.1-rc.2 `dsh-tools` / `dsh-skill` / `dsh-scope` packages; the
+  compatibility gate passes for 0.2.1-rc.1 and 0.2.1-rc.2. Added explicit
+  rc.1 devDependencies used by the probe suite (`--legacy-peer-deps`).
+
 ## [0.3.7] - 2026-09-29
 
 ### Compatibility
