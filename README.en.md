@@ -10,7 +10,7 @@
 [![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen?style=flat-square&logo=node.js)](package.json)
 [![GitHub release](https://img.shields.io/github/v/release/SeverusZh/dsh-skills-mcp-group-manager?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-skills-mcp-group-manager/releases)
 [![GitHub stars](https://img.shields.io/github/stars/SeverusZh/dsh-skills-mcp-group-manager?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-skills-mcp-group-manager)
-[![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.1.7--rc.1-blue?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
+[![DSH](https://img.shields.io/badge/DSH-0.1.7--rc.1%20%2F%200.2.1--rc.1-blue?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
 [![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com)
 
 </div>
@@ -63,7 +63,7 @@ On uninstall pnpm runs the package's `postuninstall` script (`scripts/cleanup.mj
 
 ## 🧩 兼容性 / Compatibility
 
-The `@deepseek-ai/dsh*` range in `peerDependencies` determines whether the plugin passes DSH's compatibility gate. This plugin declares **`>=0.1.7-rc.1`** (no upper bound), and has been tested on:
+Since DSH 0.2.1 the compatibility gate prefers `engines.dsh`. This plugin declares **`engines.dsh: ">=0.1.7-rc.1"`** (no upper bound), keeps the dsh peers at `>=0.1.7-rc.1`, and has been checked on:
 
 | DSH version | Status |
 | --- | --- |
@@ -73,10 +73,12 @@ The `@deepseek-ai/dsh*` range in `peerDependencies` determines whether the plugi
 | 0.1.7-rc.1 | ✅ Tested |
 | 0.1.7-rc.2 | ✅ Tested |
 | 0.2.0-rc.1 | ✅ Tested |
+| 0.2.1-rc.1 | ✅ Gate + 52 tests |
+| 0.2.1-rc.2 | ✅ Real-Cordis probes 52/52 |
 
 > Only versions that were **actually run** are listed; untested versions are omitted.
 
-v0.3.7 targets DSH **0.1.5-rc.1+**, verified on **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1** (peer `>=0.1.7-rc.1`; the real dsh-tools registry probe passes; on 0.1.7-rc.2 the `manager.state.get` RPC returns as measured; on 0.2.0-rc.1 it passes the new compatibility gate and loads normally); for older DSH releases (0.1.0-rc.x) use the last compatible npm version, **0.3.2**.
+v0.3.8 targets DSH **0.1.5-rc.1+**, verified on **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1** (peer `>=0.1.7-rc.1`; the real dsh-tools registry probe passes; on 0.1.7-rc.2 the `manager.state.get` RPC returns as measured; on 0.2.0-rc.1 it passes the new compatibility gate and loads normally; 0.2.1-rc.1 passes the gate and all 52 tests, and 0.2.1-rc.2 passes the real dsh-tools registry probes 52/52); for older DSH releases (0.1.0-rc.x) use the last compatible npm version, **0.3.2**.
 
 ## 📄 许可证 / License
 

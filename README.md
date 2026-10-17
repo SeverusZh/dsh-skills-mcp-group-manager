@@ -10,7 +10,7 @@
 [![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen?style=flat-square&logo=node.js)](package.json)
 [![GitHub release](https://img.shields.io/github/v/release/SeverusZh/dsh-skills-mcp-group-manager?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-skills-mcp-group-manager/releases)
 [![GitHub stars](https://img.shields.io/github/stars/SeverusZh/dsh-skills-mcp-group-manager?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-skills-mcp-group-manager)
-[![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.1.7--rc.1-blue?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
+[![DSH](https://img.shields.io/badge/DSH-0.1.7--rc.1%20%2F%200.2.1--rc.1-blue?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
 [![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com)
 
 </div>
@@ -65,7 +65,7 @@ dsh plugin --profile web remove dsh-skills-mcp-group-manager
 
 ## 🧩 兼容性 / Compatibility
 
-`peerDependencies` 中的 `@deepseek-ai/dsh*` 范围决定插件能否被 DSH 的兼容门禁放行。本插件声明 **`>=0.1.7-rc.1`**（无上限），并已实测：
+DSH 0.2.1 起兼容门禁优先读取 `engines.dsh`。本插件声明 **`engines.dsh: ">=0.1.7-rc.1"`**（无上限），dsh peer 保持 `>=0.1.7-rc.1`，并已核对：
 
 | DSH 版本 | 状态 |
 | --- | --- |
@@ -75,10 +75,12 @@ dsh plugin --profile web remove dsh-skills-mcp-group-manager
 | 0.1.7-rc.1 | ✅ 实测通过 |
 | 0.1.7-rc.2 | ✅ 实测通过 |
 | 0.2.0-rc.1 | ✅ 实测通过 |
+| 0.2.1-rc.1 | ✅ 兼容门禁 + 52 项测试 |
+| 0.2.1-rc.2 | ✅ 真实 Cordis 探针 52/52 |
 
 > 只列出**实际跑过**的版本；未实测的不列。
 
-v0.3.7 支持 DSH **0.1.5-rc.1+**，已在 **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1** 实测（peer `>=0.1.7-rc.1`，真实 dsh-tools registry 探针通过；0.1.7-rc.2 上 `manager.state.get` RPC 实测返回；0.2.0-rc.1 上通过新的兼容性门禁并正常加载）；旧版 DSH（0.1.0-rc.x）请使用最后兼容的 npm 版本 **0.3.2**。
+v0.3.8 支持 DSH **0.1.5-rc.1+**，已在 **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1** 实测（peer `>=0.1.7-rc.1`，真实 dsh-tools registry 探针通过；0.1.7-rc.2 上 `manager.state.get` RPC 实测返回；0.2.0-rc.1 上通过新的兼容性门禁并正常加载；0.2.1-rc.1 兼容门禁与 52 项测试通过，0.2.1-rc.2 上真实 dsh-tools registry 探针 52/52 通过）；旧版 DSH（0.1.0-rc.x）请使用最后兼容的 npm 版本 **0.3.2**。
 
 ## 📄 许可证 / License
 
